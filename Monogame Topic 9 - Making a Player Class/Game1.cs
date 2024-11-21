@@ -9,6 +9,14 @@ namespace Monogame_Topic_9___Making_a_Player_Class
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        Player amoeba;
+
+        KeyboardState keyboardState;
+
+        Texture2D amoebaTexture;
+        Texture2D wallTexture;
+        Texture2D foodTexture;
+
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -21,6 +29,7 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             // TODO: Add your initialization logic here
 
             base.Initialize();
+            amoeba = new Player(amoebaTexture, 10, 10);
         }
 
         protected override void LoadContent()
@@ -28,6 +37,9 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
+            amoebaTexture = Content.Load<Texture2D>("amoeba");
+            wallTexture = Content.Load<Texture2D>("rectangle");
+            foodTexture = Content.Load<Texture2D>("circle");
         }
 
         protected override void Update(GameTime gameTime)
@@ -36,6 +48,19 @@ namespace Monogame_Topic_9___Making_a_Player_Class
                 Exit();
 
             // TODO: Add your update logic here
+            keyboardState = Keyboard.GetState();
+
+            amoeba.HSpeed = 0;
+            amoeba.VSpeed = 0;
+
+            if (keyboardState.IsKeyDown(Keys.D))
+            {
+                amoeba.HSpeed = 3;
+            }
+            else if (keyboardState.IsKeyDown(Keys.A))
+            {
+                amoeba.VSpeed = -3;
+            }
 
             base.Update(gameTime);
         }
