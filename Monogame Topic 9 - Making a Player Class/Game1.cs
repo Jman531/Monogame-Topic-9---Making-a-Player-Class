@@ -11,7 +11,9 @@ namespace Monogame_Topic_9___Making_a_Player_Class
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
-        Player amoeba;
+        int player1Score, player2Score;
+
+        Player amoebaPlayer1, amoebaPlayer2;
 
         Rectangle window;
 
@@ -23,6 +25,8 @@ namespace Monogame_Topic_9___Making_a_Player_Class
 
         List<Rectangle> barriers;
         List<Rectangle> food;
+
+        SpriteFont scoreFont;
 
         Random generator = new Random();
 
@@ -50,9 +54,12 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             for (int i = 0; i < 10; i++)
                 food.Add(new Rectangle(generator.Next(0, 790), generator.Next(0, 490), 10, 10));
 
+            player1Score = 0;
+            player2Score = 0;
 
             base.Initialize();
-            amoeba = new Player(amoebaTexture, 10, 10);
+            amoebaPlayer1 = new Player(amoebaTexture, 10, 10);
+            amoebaPlayer2 = new Player(amoebaTexture, 760, 460);
         }
 
         protected override void LoadContent()
@@ -63,6 +70,9 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             amoebaTexture = Content.Load<Texture2D>("amoeba");
             wallTexture = Content.Load<Texture2D>("rectangle");
             foodTexture = Content.Load<Texture2D>("circle");
+            scoreFont = Content.Load<SpriteFont>("Score");
+
+
         }
 
         protected override void Update(GameTime gameTime)
@@ -73,41 +83,78 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             // TODO: Add your update logic here
             keyboardState = Keyboard.GetState();
 
-            amoeba.HSpeed = 0;
-            amoeba.VSpeed = 0;
+            amoebaPlayer1.HSpeed = 0;
+            amoebaPlayer1.VSpeed = 0;
+
+            amoebaPlayer2.HSpeed = 0;
+            amoebaPlayer2.VSpeed = 0;
 
             if (keyboardState.IsKeyDown(Keys.D))
             {
-                amoeba.HSpeed = 3;
+                amoebaPlayer1.HSpeed = 3;
             }
             else if (keyboardState.IsKeyDown(Keys.A))
             {
-                amoeba.HSpeed = -3;
+                amoebaPlayer1.HSpeed = -3;
             }
 
             if (keyboardState.IsKeyDown(Keys.W))
             {
-                amoeba.VSpeed = -3;
+                amoebaPlayer1.VSpeed = -3;
             }
             else if (keyboardState.IsKeyDown(Keys.S))
             {
-                amoeba.VSpeed = 3;
+                amoebaPlayer1.VSpeed = 3;
             }
 
-            amoeba.Update();
+            if (keyboardState.IsKeyDown(Keys.Left))
+            {
+                amoebaPlayer2.HSpeed = 3;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Right))
+            {
+                amoebaPlayer2.HSpeed = -3;
+            }
 
-            amoeba.Offscreen(window);
+            if (keyboardState.IsKeyDown(Keys.Down))
+            {
+                amoebaPlayer2.VSpeed = -3;
+            }
+            else if (keyboardState.IsKeyDown(Keys.Up))
+            {
+                amoebaPlayer2.VSpeed = 3;
+            }
+
+            amoebaPlayer1.Update();
+            amoebaPlayer2.Update();
+
+            amoebaPlayer1.Offscreen(window);
+            amoebaPlayer2.Offscreen(window);
 
             foreach (Rectangle barrier in barriers)
-                if (amoeba.Collide(barrier))
-                    amoeba.UndoMove();
+                if (amoebaPlayer1.Collide(barrier))
+                    amoebaPlayer1.UndoMove();
+
+            foreach (Rectangle barrier in barriers)
+                if (!amoebaPlayer2.Collide(barrier))
+                    amoebaPlayer2.UndoMove();
 
             for (int i = 0; i < food.Count; i++)
-                if (amoeba.Collide(food[i]))
+                if (amoebaPlayer1.Collide(food[i]))
                 {
-                    amoeba.Grow();
+                    amoebaPlayer1.Grow();
                     food.RemoveAt(i);
                     i--;
+                    player1Score++;
+                }
+
+            for (int i = 0; i < food.Count; i++)
+                if (amoebaPlayer2.Collide(food[i]))
+                {
+                    amoebaPlayer2.Grow();
+                    food.RemoveAt(i);
+                    i--;
+                    player2Score++;
                 }
 
             base.Update(gameTime);
@@ -124,7 +171,10 @@ namespace Monogame_Topic_9___Making_a_Player_Class
                 _spriteBatch.Draw(wallTexture, barrier, Color.White);
             foreach (Rectangle bit in food)
                 _spriteBatch.Draw(foodTexture, bit, Color.White);
-            amoeba.Draw(_spriteBatch);
+            amoebaPlayer1.Draw(_spriteBatch);
+            amoebaPlayer2.Draw(_spriteBatch);
+            _spriteBatch.DrawString(scoreFont, ("Player 1 Score: " + player1Score), new Vector2(0, 0), Color.Black);
+            _spriteBatch.DrawString(scoreFont, ("Player 2 Score: " + player2Score), new Vector2(0, 25), Color.Black);
 
             _spriteBatch.End();
 
