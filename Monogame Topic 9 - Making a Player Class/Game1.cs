@@ -24,7 +24,7 @@ namespace Monogame_Topic_9___Making_a_Player_Class
         Texture2D foodTexture;
 
         List<Rectangle> barriers;
-        List<Rectangle> food;
+        List<Food> food;
 
         SpriteFont scoreFont;
 
@@ -49,15 +49,14 @@ namespace Monogame_Topic_9___Making_a_Player_Class
             barriers.Add(new Rectangle(100, 100, 10, 200));
             barriers.Add(new Rectangle(400, 400, 100, 10));
 
-            food = new List<Rectangle>();
-
-            for (int i = 0; i < 10; i++)
-                food.Add(new Rectangle(generator.Next(0, 790), generator.Next(0, 490), 10, 10));
-
             player1Score = 0;
             player2Score = 0;
 
             base.Initialize();
+            food = new List<Food>();
+            for (int i = 0; i < 10; i++)
+                food.Add(new Food(foodTexture, new Rectangle(generator.Next(0, 790), generator.Next(0, 490), 10, 10), new Vector2(2, -2)));
+
             amoebaPlayer1 = new Player(amoebaTexture, 10, 10);
             amoebaPlayer2 = new Player(amoebaTexture, 760, 460);
         }
@@ -107,26 +106,29 @@ namespace Monogame_Topic_9___Making_a_Player_Class
                 amoebaPlayer1.VSpeed = 3;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Left))
+            if (keyboardState.IsKeyDown(Keys.Right))
             {
                 amoebaPlayer2.HSpeed = 3;
             }
-            else if (keyboardState.IsKeyDown(Keys.Right))
+            else if (keyboardState.IsKeyDown(Keys.Left))
             {
                 amoebaPlayer2.HSpeed = -3;
             }
 
-            if (keyboardState.IsKeyDown(Keys.Down))
+            if (keyboardState.IsKeyDown(Keys.Up))
             {
                 amoebaPlayer2.VSpeed = -3;
             }
-            else if (keyboardState.IsKeyDown(Keys.Up))
+            else if (keyboardState.IsKeyDown(Keys.Down))
             {
                 amoebaPlayer2.VSpeed = 3;
             }
 
             amoebaPlayer1.Update();
             amoebaPlayer2.Update();
+
+            foreach (Food bit in food)
+                bit.Move(window);
 
             amoebaPlayer1.Offscreen(window);
             amoebaPlayer2.Offscreen(window);
@@ -136,11 +138,26 @@ namespace Monogame_Topic_9___Making_a_Player_Class
                     amoebaPlayer1.UndoMove();
 
             foreach (Rectangle barrier in barriers)
-                if (!amoebaPlayer2.Collide(barrier))
+                if (amoebaPlayer2.Collide(barrier))
                     amoebaPlayer2.UndoMove();
 
+            foreach (Rectangle barrier in barriers)
+                foreach (Food bit in food)
+                    bit.Collide(barrier);
+
             for (int i = 0; i < food.Count; i++)
-                if (amoebaPlayer1.Collide(food[i]))
+            {
+                for (int j = 0; j < food.Count; j++)
+                {
+                    if (i != j)
+                    {
+                        food[i].Collide(food[j].Bounds);
+                    }
+                }
+            }
+
+            for (int i = 0; i < food.Count; i++)
+                if (amoebaPlayer1.Collide(food[i].Bounds))
                 {
                     amoebaPlayer1.Grow();
                     food.RemoveAt(i);
@@ -149,7 +166,7 @@ namespace Monogame_Topic_9___Making_a_Player_Class
                 }
 
             for (int i = 0; i < food.Count; i++)
-                if (amoebaPlayer2.Collide(food[i]))
+                if (amoebaPlayer2.Collide(food[i].Bounds))
                 {
                     amoebaPlayer2.Grow();
                     food.RemoveAt(i);
@@ -169,8 +186,8 @@ namespace Monogame_Topic_9___Making_a_Player_Class
 
             foreach (Rectangle barrier in barriers)
                 _spriteBatch.Draw(wallTexture, barrier, Color.White);
-            foreach (Rectangle bit in food)
-                _spriteBatch.Draw(foodTexture, bit, Color.White);
+            foreach (Food bit in food)
+                _spriteBatch.Draw(bit.Texture, bit.Bounds, Color.White);
             amoebaPlayer1.Draw(_spriteBatch);
             amoebaPlayer2.Draw(_spriteBatch);
             _spriteBatch.DrawString(scoreFont, ("Player 1 Score: " + player1Score), new Vector2(0, 0), Color.Black);
